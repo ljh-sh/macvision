@@ -1,0 +1,24 @@
+title: macvision
+description: Private macOS vision CLI for local OCR, image classification, and detection of faces, barcodes, text, and documents.
+baseurl: "/macvision"
+url: "https://ljh-sh.github.io"
+
+permalink: pretty
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+plugins:
+  - jekyll-relative-links
+  - jekyll-sitemap
+
+relative_links:
+  enabled: true
+  collections: true
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md

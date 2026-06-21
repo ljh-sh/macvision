@@ -1,0 +1,65 @@
+#!/usr/bin/env sh
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/release.common.sh"
+
+BIN_NAME="${BIN_NAME:-macvision}"
+init_common
+
+DID_BUILD=0
+
+parse_args() {
+    if [ $# -eq 0 ]; then
+        build_all_targets
+        return
+    fi
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            all)
+                build_all_targets
+                DID_BUILD=1
+                ;;
+            package)
+                package_all_targets
+                ;;
+            package-arm64|pkg-arm64)
+                package_target "arm64"
+                ;;
+            package-x64|pkg-x64)
+                package_target "x64"
+                ;;
+            release)
+                build_all_targets
+                package_all_targets
+                DID_BUILD=1
+                ;;
+            darwin-x64|x86_64)
+                do_build "x86_64" "darwin" "x64"
+                DID_BUILD=1
+                ;;
+            darwin-arm64|arm64|aarch64)
+                do_build "arm64" "darwin" "arm64"
+                DID_BUILD=1
+                ;;
+            verify)
+                verify_reproducibility "$2"
+                shift
+                ;;
+            -h|--help)
+                show_usage
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1"
+                show_usage
+                exit 1
+                ;;
+        esac
+        shift
+    done
+}
+
+parse_args "$@"
