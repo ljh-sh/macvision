@@ -59,6 +59,16 @@ enum FeatureCmd: Cmd {
     static let meta = CmdMeta(
         name: "feature",
         desc: "Image fingerprint (feature-print vector), or compare two images",
+        synopsis: [
+            "macvision feature <image>                    # fingerprint vector (base64)",
+            "macvision feature <image> --compare <other>  # distance (0 = identical)",
+            "macvision feature <image> --level 2          # more precise (macOS 14+)",
+        ],
+        tldr: [
+            ("Get an image fingerprint", "macvision feature a.jpg"),
+            ("Are two images the same? (distance ~0)", "macvision feature a.jpg --compare b.jpg"),
+            ("Near-duplicate check (pick your own threshold)", "macvision feature a.jpg --compare b.jpg | jq .distance"),
+        ],
         opts: imageInputOpts + [
             OptMeta(name: "--compare", type: String.self, desc: "Second image path; prints the distance between the two instead of a vector"),
             OptMeta(name: "--level", type: Int.self, desc: "Featureprint revision: 1 (default) or 2 (more precise, macOS 14+)"),

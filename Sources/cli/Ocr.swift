@@ -52,6 +52,16 @@ enum OcrCmd: Cmd {
     static let meta = CmdMeta(
         name: "ocr",
         desc: "Extract text (OCR) from an image",
+        synopsis: [
+            "macvision ocr <image> [--lang zh-Hans,en-US] [--level accurate|fast]",
+            "macvision ocr -                         # base64 image on stdin",
+            "macvision ocr --clipboard [--lang ...]  # OCR the image on the clipboard",
+        ],
+        tldr: [
+            ("Chinese + English from a screenshot", "macvision ocr shot.png --lang zh-Hans,en-US"),
+            ("Fast pass over a large image", "macvision ocr big.png --level fast"),
+            ("Just the text, via jq", "macvision ocr shot.png | jq -r '.texts[].text'"),
+        ],
         opts: imageInputOpts + [
             OptMeta(name: "--lang", type: [String].self, desc: "Recognition languages, comma-separated (default: en-US). zh-Hans / zh-Hant for Chinese"),
             OptMeta(name: "--level", type: String.self, desc: "Recognition level: accurate|fast (default: accurate)"),

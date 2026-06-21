@@ -53,6 +53,8 @@ func daemonDispatch(action: String, request: [String: Any]) throws -> [String: A
         opts.barcodes = reqBool(request, "barcodes", false)
         opts.textRegions = reqBool(request, "text_regions", false)
         opts.horizon = reqBool(request, "horizon", false)
+        opts.ocr = reqBool(request, "ocr", false)
+        opts.ocrLang = (request["lang"] as? [String]) ?? ["en-US"]
         opts.symbologies = parseSymbologies(request["symbologies"] as? [String])
         opts.minSize = reqDouble(request, "min_size", 0.2)
         opts.minConfidence = reqDouble(request, "min_confidence", 0.0)
@@ -118,6 +120,15 @@ enum DaemonCmd: Cmd {
     static let meta = CmdMeta(
         name: "daemon",
         desc: "Run a long-lived FIFO daemon (NDJSON over named pipes) for IPC",
+        longDesc: "Reads NDJSON requests from the request FIFO and writes one NDJSON response per request to the response FIFO. Each request is a JSON object with an `action` (ocr, classify, detect, feature, salient, document, doctor) plus that action's fields — output matches the matching CLI command.",
+        synopsis: [
+            "macvision daemon [--req <path> --res <path>]",
+        ],
+        tldr: [
+            ("Start the daemon on the default FIFOs", "macvision daemon &"),
+            ("Send an OCR request over the FIFO", "echo '{\"action\":\"ocr\",\"image\":\"/tmp/s.png\",\"lang\":[\"zh-Hans\",\"en-US\"]}' > /tmp/macvision.req"),
+            ("Read the response line", "cat /tmp/macvision.res"),
+        ],
         opts: [
             OptMeta(name: "--req", type: String.self, desc: "Request FIFO path (default: /tmp/macvision.req)"),
             OptMeta(name: "--res", type: String.self, desc: "Response FIFO path (default: /tmp/macvision.res)"),

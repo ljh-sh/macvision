@@ -81,6 +81,7 @@ macvision classify ./photo.jpg --top 5                # 场景 / 物体标签
 macvision classify ./photo.jpg --animals              # 动物物种
 
 macvision detect ./photo.jpg                          # 人脸 / 条码 / 文字区域 / 地平线
+macvision detect ./shot.png --ocr --lang zh-Hans,en-US  # 上面全部 + 读出文字
 macvision detect ./card.jpg --rects                   # 文档 / 卡片矩形
 macvision detect ./qr.png --barcodes --symbologies qr # 仅条码 / QR
 

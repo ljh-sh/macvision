@@ -55,6 +55,13 @@ enum SalientCmd: Cmd {
     static let meta = CmdMeta(
         name: "salient",
         desc: "Produce a saliency heatmap (what the eye is drawn to)",
+        synopsis: [
+            "macvision salient <image> [--mode attention|objectness] [--output heat.png]",
+        ],
+        tldr: [
+            ("Where attention goes (heatmap PNG)", "macvision salient photo.jpg --output heat.png"),
+            ("Where whole objects likely are", "macvision salient photo.jpg --mode objectness"),
+        ],
         opts: imageInputOpts + [
             OptMeta(name: "--mode", type: String.self, desc: "attention (default) | objectness"),
             OptMeta(name: "--output", type: String.self, desc: "Write the heatmap PNG here (default: a temp file)"),

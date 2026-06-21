@@ -4,6 +4,11 @@ struct CmdMeta {
     var name: String
     var alias: [String] = []
     var desc: String = ""
+    var longDesc: String = ""          // longer DESCRIPTION paragraph
+    var tips: [String] = []            // TIP blocks under DESCRIPTION
+    var notes: [String] = []           // NOTE blocks under DESCRIPTION
+    var synopsis: [String] = []        // SYNOPSIS usage lines
+    var tldr: [(String, String)] = []  // TLDR: (short desc, example command)
     var opts: [OptMeta] = []
     var args: [ArgMeta] = []
     var subcmds: [String: Cmd.Type] = [:]
@@ -118,10 +123,37 @@ func runCmd(_ type: Cmd.Type, _ args: [String]) async throws {
 func printCmdHelp(_ type: Cmd.Type) {
     let meta = type.meta
     let name = meta.name == "macvision" ? "macvision" : "macvision \(meta.name)"
-    print("NAME:\n    \(name)\n")
-    if !meta.desc.isEmpty {
-        print("DESCRIPTION:\n    \(meta.desc)\n")
+
+    // NAME — "macvision <cmd> - <one-line>"
+    print("NAME:")
+    print("    \(name) - \(meta.desc)")
+    print("")
+
+    // SYNOPSIS — one usage form per line.
+    if !meta.synopsis.isEmpty {
+        print("SYNOPSIS:")
+        for line in meta.synopsis { print("    \(line)") }
+        print("")
     }
+
+    // DESCRIPTION — paragraph, then TIP / NOTE blocks.
+    if !meta.longDesc.isEmpty || !meta.tips.isEmpty || !meta.notes.isEmpty {
+        print("DESCRIPTION:")
+        if !meta.longDesc.isEmpty {
+            print("    \(meta.longDesc)")
+        }
+        for tip in meta.tips {
+            print("    TIP:")
+            print("        \(tip)")
+        }
+        for note in meta.notes {
+            print("    NOTE:")
+            print("        \(note)")
+        }
+        print("")
+    }
+
+    // SUBCOMMANDS
     if !meta.subcmds.isEmpty {
         print("SUBCOMMANDS:")
         for (n, subType) in meta.subcmds.sorted(by: { $0.key < $1.key }) {
@@ -131,6 +163,8 @@ func printCmdHelp(_ type: Cmd.Type) {
         }
         print("")
     }
+
+    // OPTIONS
     if !meta.opts.isEmpty {
         print("OPTIONS:")
         for opt in meta.opts {
@@ -139,10 +173,22 @@ func printCmdHelp(_ type: Cmd.Type) {
         }
         print("")
     }
+
+    // ARGS
     if !meta.args.isEmpty {
         print("ARGS:")
         for arg in meta.args {
             print("    \(arg.name)\t\(arg.desc)")
+        }
+        print("")
+    }
+
+    // TLDR — short desc + indented example command.
+    if !meta.tldr.isEmpty {
+        print("TLDR:")
+        for (d, cmd) in meta.tldr {
+            print("    \(d)")
+            print("        \(cmd)")
         }
         print("")
     }

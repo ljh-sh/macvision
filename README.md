@@ -81,6 +81,7 @@ macvision classify ./photo.jpg --top 5                # scene/object labels
 macvision classify ./photo.jpg --animals              # animal species
 
 macvision detect ./photo.jpg                          # faces, barcodes, text regions, horizon
+macvision detect ./shot.png --ocr --lang zh-Hans,en-US  # broad + read the text
 macvision detect ./card.jpg --rects                   # document/card rectangles
 macvision detect ./qr.png --barcodes --symbologies qr # barcodes / QR only
 

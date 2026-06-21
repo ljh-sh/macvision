@@ -45,6 +45,14 @@ enum ClassifyCmd: Cmd {
     static let meta = CmdMeta(
         name: "classify",
         desc: "Classify an image's scene/objects (or animal species with --animals)",
+        synopsis: [
+            "macvision classify <image> [--top N] [--min-confidence 0.2]",
+            "macvision classify <image> --animals   # recognize animal species",
+        ],
+        tldr: [
+            ("Top 5 scene/object labels", "macvision classify photo.jpg --top 5"),
+            ("What animal is in this photo", "macvision classify pet.jpg --animals"),
+        ],
         opts: imageInputOpts + [
             OptMeta(name: "--top", type: Int.self, desc: "Keep top N labels (default: 10)"),
             OptMeta(name: "--min-confidence", type: Double.self, desc: "Drop labels below this confidence (default: 0)"),

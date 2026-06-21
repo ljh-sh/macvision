@@ -83,13 +83,14 @@ macvision classify ./photo.jpg --animals
 
 ## `macvision detect <image>`
 
-Run one or more detectors in a single pass. With no detector flag, it runs faces, barcodes, text regions, and horizon (rectangles are opt-in because they are tuned for cards/documents).
+Run one or more detectors in a single pass. With no detector flag it runs the broad set: faces, barcodes, text regions, and horizon. A flag like `--faces` **narrows** to only that detector. `--rects` (document/card rectangles) and `--ocr` (recognize the actual text) are **additive** — `--ocr` runs text recognition on top of whatever else runs, so `detect img --ocr` = broad + read the words.
 
 ```sh
-macvision detect ./photo.jpg
-macvision detect ./card.jpg --rects
+macvision detect ./photo.jpg                              # broad: faces, barcodes, text regions, horizon
+macvision detect ./shot.png --ocr --lang zh-Hans,en-US   # broad + read the text
+macvision detect ./card.jpg --rects                       # document/card rectangles (opt-in)
 macvision detect ./qr.png --barcodes --symbologies qr,ean13
-macvision detect ./photo.jpg --faces --horizon
+macvision detect ./photo.jpg --faces --horizon            # only faces + horizon
 ```
 
 **Options**
@@ -99,7 +100,9 @@ macvision detect ./photo.jpg --faces --horizon
 | `--faces` | off (on by default if none set) | Detect faces |
 | `--rects` | off | Detect document/card rectangles |
 | `--barcodes` | off (on by default if none set) | Detect barcodes / QR |
-| `--text-regions` | off (on by default if none set) | Detect text regions |
+| `--text-regions` | off (on by default if none set) | Detect text region boxes (no content) |
+| `--ocr` | off | Recognize the actual text (additive) |
+| `--lang` | `en-US` | OCR languages with `--ocr` (`zh-Hans`/`zh-Hant` for Chinese) |
 | `--horizon` | off (on by default if none set) | Detect horizon angle |
 | `--symbologies` | Vision default | `qr,ean13,ean8,upce,code128,code39,code93,datamatrix,pdf417,aztec,itf14` |
 | `--min-size` | `0.2` | Minimum rectangle size for `--rects` (0–1) |
@@ -113,6 +116,7 @@ macvision detect ./photo.jpg --faces --horizon
 | `detections.faces` | [object] | `{bbox, norm}` |
 | `detections.rectangles` | [object] | `{bbox, norm, corners, confidence}` — `corners` is 4 `[x, y]` pixel points |
 | `detections.barcodes` | [object] | `{payload, symbology, bbox, norm}` |
+| `detections.texts` | [object] | Recognized text (with `--ocr`): `{text, confidence, bbox, norm}` |
 | `detections.text_regions` | [object] | `{bbox, norm, character_count?}` |
 | `detections.horizon` | object | `{angle}` in radians |
 | `detections.*_count` | int | Per-detector counts |

@@ -31,6 +31,12 @@ enum DocumentCmd: Cmd {
     static let meta = CmdMeta(
         name: "document",
         desc: "Find the document outline (for crop / deskew)",
+        synopsis: [
+            "macvision document <image>",
+        ],
+        tldr: [
+            ("Get the document quad to crop/deskew a scan", "macvision document scan.jpg"),
+        ],
         opts: imageInputOpts,
         args: [ArgMeta(name: "image", desc: "Image path, '-' for stdin base64, or use --clipboard/--screen")],
         run: { p in

@@ -66,6 +66,12 @@ enum DoctorCmd: Cmd {
     static let meta = CmdMeta(
         name: "doctor",
         desc: "Check the environment and report Vision capabilities",
+        synopsis: [
+            "macvision doctor",
+        ],
+        tldr: [
+            ("Check macOS version, arch, and supported Vision requests", "macvision doctor"),
+        ],
         run: { _ in
             printJson(runDoctor())
         }
