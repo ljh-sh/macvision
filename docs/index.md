@@ -5,7 +5,7 @@ title: Home
 
 <div class="hero">
   <h1>macvision</h1>
-  <p>Private macOS vision CLI — local OCR, classification, and detection with a tiny footprint.</p>
+  <p>Private macOS vision for AI agents — OCR and image understanding on-device. Images never leave the Mac or hit your LLM bill.</p>
   <div class="cta">
     <a class="btn primary" href="{{ '/install' | relative_url }}">Install</a>
     <a class="btn secondary" href="{{ '/subcommands' | relative_url }}">Command reference</a>
@@ -15,9 +15,9 @@ title: Home
 
 ## What is macvision?
 
-**macvision** wraps Apple's `Vision` framework in a tiny Swift binary. It reads text out of screenshots and photos, classifies what is in an image, and detects faces, barcodes, text regions, and document outlines — all from the command line, all locally on your Mac, all with compact JSON output.
+**macvision** wraps Apple's `Vision` framework in a tiny Swift binary. It reads text, classifies scenes, and detects faces, barcodes, and documents out of any image — entirely on-device, with compact JSON output.
 
-Use it when you (or your AI agent) need reliable macOS-native vision without a model download or a cloud round-trip:
+Use it wherever you'd otherwise pay for an LLM vision call: run OCR locally for free, then send only the text to the model. Images never leave the Mac, there's no model to download, and nothing to upload.
 
 - *Read a screenshot into text and feed it to an LLM*
 - *Find the QR code or the document outline in an image*

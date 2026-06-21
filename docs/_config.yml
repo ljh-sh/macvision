@@ -1,5 +1,5 @@
 title: macvision
-description: Private macOS vision CLI for local OCR, image classification, and detection of faces, barcodes, text, and documents.
+description: Private macOS vision for AI agents — on-device OCR and image understanding via Apple's Vision framework. No cloud, no model, no per-call cost.
 baseurl: "/macvision"
 url: "https://ljh-sh.github.io"
 

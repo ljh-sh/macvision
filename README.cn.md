@@ -5,18 +5,20 @@
 [![Docs](https://img.shields.io/badge/Docs-website-blue.svg)](https://ljh-sh.github.io/macvision)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.txt)
 
-> 私密的 macOS 视觉 CLI —— 本地 OCR、图像分类与目标检测，系统占用极低。
+> 面向 AI agent 的本地 macOS 视觉 CLI —— OCR 与图像理解全在本机完成，图像不离机，也不烧 LLM vision 的钱。
 
-**macvision** 把 Apple 的 `Vision` 框架封装成一个极小的 Swift 二进制。它能从截图、照片里提取文字，给图像做场景分类，检测人脸 / 条码 / 文字区域 / 文档边框 —— 全部在你的 Mac 本地完成，无需下载任何模型。所有输出都是紧凑 JSON，方便管道和 AI 智能体使用。
+**macvision** 把 Apple 的 `Vision` 框架封装成一个极小的 Swift 二进制。它能从任意图像里提取文字、做场景分类、检测人脸 / 条码 / 文档 —— 全部在设备本地完成。图像从不离开你的 Mac，无需下载模型，也无需上传任何东西。在那些原本要调用 LLM vision API 的地方改用 macvision：先在本地免费 OCR，再把文本喂给模型即可。所有输出都是紧凑 JSON，方便管道和 AI agent 使用。
 
 English: [README.md](README.md)。
 
 ## 亮点
 
-- **默认私密** —— 图像由 Apple `Vision` 框架在本地处理，不上传任何数据。
-- **零模型下载** —— 直接用系统框架，没有模型要下载、缓存或加载。
-- **JSON 优先** —— 每个命令都输出紧凑 JSON，方便管道和智能体解析。
+- **私密 —— 数据留在本机** —— 图像由 Apple `Vision` 框架在你的 Mac 上处理，绝不上传。
+- **省下 LLM vision 费用** —— OCR 与检测全在本地免费完成；把提取出的文本喂给模型，而不是按图付费。
+- **Apple 框架，零模型下载** —— 直接用系统 `Vision` 框架，无需下载、缓存或加载。
+- **系统低负荷** —— 单个 Swift 二进制，内存远低于 100MB，启动瞬时，退出即释放。
 - **完整覆盖 Vision 能力** —— OCR、场景 / 动物分类、人脸 / 条码 / 矩形 / 文字检测、文档版面、视觉显著性热力图、图像指纹。
+- **为 agent 而生** —— JSON 优先 + FIFO 守护进程，`macvision ocr` 直接嵌入 agent 循环和 `jq` 管道。
 
 文档：[ljh-sh.github.io/macvision](https://ljh-sh.github.io/macvision)
 

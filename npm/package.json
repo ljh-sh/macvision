@@ -1,7 +1,7 @@
 {
   "name": "@ljh-sh/macvision",
   "version": "0.0.0",
-  "description": "Private macOS vision CLI — local OCR, classification, and detection via Apple's Vision framework.",
+  "description": "On-device macOS vision for AI agents — local OCR & image understanding via Apple's Vision framework. Private, no per-call cost.",
   "keywords": [
     "macos",
     "cli",

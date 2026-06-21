@@ -5,18 +5,20 @@
 [![Docs](https://img.shields.io/badge/Docs-website-blue.svg)](https://ljh-sh.github.io/macvision)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.txt)
 
-> Private macOS vision CLI — local OCR, classification, and detection with a tiny footprint.
+> Private macOS vision for AI agents — OCR and image understanding on-device, so images never leave the Mac or hit your LLM bill.
 
-**macvision** wraps Apple's `Vision` framework in a tiny Swift binary. It reads text out of screenshots and photos, classifies what's in an image, and detects faces, barcodes, text regions, and document outlines — all locally on your Mac, with no model download. All output is compact JSON, so it fits neatly into shell pipelines and AI agent workflows.
+**macvision** wraps Apple's `Vision` framework in a tiny Swift binary. It reads text, classifies scenes, and detects faces, barcodes, and documents out of any image — entirely on-device. Images never leave your Mac, there's no model to download, and nothing to upload. Run it wherever you'd otherwise pay for an LLM vision call: OCR the screenshot locally for free, then send only the text to the model. All output is compact JSON for pipes and AI agents.
 
 中文说明见 [README.cn.md](README.cn.md)。
 
 ## Highlights
 
-- **Private by default** — images are processed by Apple's `Vision` framework on your Mac; nothing is uploaded.
-- **Zero model download** — uses the system framework, so there is nothing to fetch, cache, or load.
-- **JSON-first** — every command prints compact JSON for pipes and agents.
+- **Private — data stays on-device** — images are processed by Apple's `Vision` framework on your Mac; nothing is uploaded, ever.
+- **Cuts your LLM vision bill** — OCR and detection run free, locally; pipe the extracted text to your model instead of paying per image.
+- **Apple framework, zero model download** — uses the system `Vision` framework; nothing to fetch, cache, or load.
+- **Tiny footprint** — a single Swift binary, well under 100MB of memory, starts instantly, releases everything on exit.
 - **Full Vision surface** — OCR, scene/animal classification, face/barcode/rectangle/text detection, document segmentation, saliency heatmaps, and image feature-prints.
+- **Built for agents** — JSON-first output and a FIFO daemon, so `macvision ocr` drops straight into agent loops and `jq` pipelines.
 
 Docs: [ljh-sh.github.io/macvision](https://ljh-sh.github.io/macvision)
 
