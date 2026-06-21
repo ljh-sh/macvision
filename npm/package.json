@@ -1,0 +1,37 @@
+{
+  "name": "@ljh-sh/macvision",
+  "version": "0.0.0",
+  "description": "Private macOS vision CLI — local OCR, classification, and detection via Apple's Vision framework.",
+  "keywords": [
+    "macos",
+    "cli",
+    "vision",
+    "ocr",
+    "image-classification",
+    "object-detection",
+    "barcode",
+    "agent"
+  ],
+  "homepage": "https://github.com/ljh-sh/macvision",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ljh-sh/macvision.git"
+  },
+  "license": "Apache-2.0",
+  "bin": {
+    "macvision": "./bin/macvision"
+  },
+  "files": [
+    "bin/",
+    "install.js"
+  ],
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

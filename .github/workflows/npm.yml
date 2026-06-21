@@ -1,0 +1,71 @@
+name: Publish to npm
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag name (e.g. v0.1.0)'
+        required: true
+
+permissions: read-all
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Determine version
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "name=${INPUT_TAG#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Wait for release assets
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+        run: |
+          asset_url="https://github.com/ljh-sh/macvision/releases/download/v${VERSION}/macvision-darwin-universal.tar.xz"
+          echo "Waiting for release asset: ${asset_url}"
+          for i in $(seq 1 60); do
+            code=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 10 "${asset_url}")
+            if [ "${code}" = "200" ]; then
+              echo "Release asset is available."
+              exit 0
+            fi
+            echo "Asset not ready yet (HTTP ${code}); sleeping 10s..."
+            sleep 10
+          done
+          echo "Timed out waiting for release assets." >&2
+          exit 1
+
+      - name: Set npm version
+        working-directory: ./npm
+        run: npm version --no-git-tag-version "${{ steps.version.outputs.name }}"
+
+      - name: Publish to npm
+        working-directory: ./npm
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

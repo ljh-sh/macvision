@@ -1,0 +1,43 @@
+# Mirror main branch and tags to Codeberg after every push to GitHub.
+# Keeps https://codeberg.org/ljh-sh/macvision in sync automatically.
+#
+# Gated on the ENABLE_MIRROR repo variable — set it to "true" once the
+# Codeberg repo (codeberg.org/ljh-sh/macvision) and CODEBERG_TOKEN secret
+# exist. Skips cleanly until then (no red check on a fresh repo).
+#
+# Token: CODEBERG_TOKEN secret (Codeberg access token with write:repository).
+name: Mirror to Codeberg
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    if: vars.ENABLE_MIRROR == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0   # need full history + tags
+          persist-credentials: false
+
+      - name: Configure Codeberg remote
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git remote add codeberg "https://ljh-sh:${CODEBERG_TOKEN}@codeberg.org/ljh-sh/macvision.git"
+
+      - name: Push main + tags
+        run: |
+          # Push the currently checked-out commit to Codeberg main. This works
+          # for both branch pushes (HEAD == main) and tag pushes (HEAD == tag).
+          git push codeberg HEAD:main --force
+          git push codeberg --tags --force
