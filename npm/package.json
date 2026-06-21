@@ -1,7 +1,7 @@
 {
   "name": "@ljh-sh/macvision",
   "version": "0.0.0",
-  "description": "On-device macOS vision for AI agents — local OCR & image understanding via Apple's Vision framework. Private, no per-call cost.",
+  "description": "Turn any image into agent-friendly JSON — local macOS OCR & image understanding via Apple's Vision framework. No model, no uploads, no per-call cost.",
   "keywords": [
     "macos",
     "cli",

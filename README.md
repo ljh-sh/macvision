@@ -5,20 +5,19 @@
 [![Docs](https://img.shields.io/badge/Docs-website-blue.svg)](https://ljh-sh.github.io/macvision)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.txt)
 
-> Private macOS vision for AI agents — OCR and image understanding on-device, so images never leave the Mac or hit your LLM bill.
+> Turn any image into agent-friendly JSON — local OCR and image understanding on macOS.
 
-**macvision** wraps Apple's `Vision` framework in a tiny Swift binary. It reads text, classifies scenes, and detects faces, barcodes, and documents out of any image — entirely on-device. Images never leave your Mac, there's no model to download, and nothing to upload. Run it wherever you'd otherwise pay for an LLM vision call: OCR the screenshot locally for free, then send only the text to the model. All output is compact JSON for pipes and AI agents.
+**macvision** wraps Apple's `Vision` framework in a tiny Swift binary. Point it at a screenshot, photo, or scan and get back text, scene labels, and detected faces, barcodes, and documents — all as compact JSON, all processed on your Mac. There's no big model to download and nothing is uploaded. Run it wherever you'd otherwise pay for an LLM vision call: OCR the image locally for free, then send only the text to your model.
 
 中文说明见 [README.cn.md](README.cn.md)。
 
 ## Highlights
 
-- **Private — data stays on-device** — images are processed by Apple's `Vision` framework on your Mac; nothing is uploaded, ever.
-- **Cuts your LLM vision bill** — OCR and detection run free, locally; pipe the extracted text to your model instead of paying per image.
-- **Apple framework, zero model download** — uses the system `Vision` framework; nothing to fetch, cache, or load.
-- **Tiny footprint** — a single Swift binary, well under 100MB of memory, starts instantly, releases everything on exit.
-- **Full Vision surface** — OCR, scene/animal classification, face/barcode/rectangle/text detection, document segmentation, saliency heatmaps, and image feature-prints.
-- **Built for agents** — JSON-first output and a FIFO daemon, so `macvision ocr` drops straight into agent loops and `jq` pipelines.
+- **No big model to download** — runs on Apple's built-in `Vision` framework; nothing to fetch, cache, or load.
+- **Cuts your LLM vision bill** — OCR and detection run free, on-device; send the text to your model instead of paying per image.
+- **Protects your privacy — nothing is uploaded** — every image is processed locally on your Mac.
+- **Agent-friendly JSON** — compact single-line output and a FIFO daemon, so it drops straight into `jq` pipelines and agent loops.
+- **Full Vision surface** — OCR, classification, face/barcode/document detection, document segmentation, saliency heatmaps, and image feature-prints.
 
 Docs: [ljh-sh.github.io/macvision](https://ljh-sh.github.io/macvision)
 
