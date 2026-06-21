@@ -1,2 +1,3 @@
-# Require admin review for all changes.
-* @edwinjhlee
+# Code owners. Per mneme policy, every PR requires 2 approving reviews:
+# @ljh-zs and @hjh1990 (both are code owners, so each satisfies the code-owner check).
+* @edwinjhlee @ljh-zs @hjh1990
