@@ -17,6 +17,8 @@ Guiding principle: **macvision only does what is hard to do from shell or Python
 - [x] Image input from file, stdin base64, clipboard, and screenshot
 - [x] FIFO daemon with NDJSON IPC (`macvision daemon`)
 - [x] Environment and capability check (`macvision doctor`)
+- [x] `detect --ocr` — read the actual text inside `detect` (v0.1.1)
+- [x] Agent-friendly `--help`: SYNOPSIS / TIP / TLDR (v0.1.1)
 
 ---
 
