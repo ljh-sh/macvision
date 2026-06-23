@@ -9,6 +9,13 @@ import Foundation
 struct Entry {
     static func main() async {
         let args = Array(CommandLine.arguments.dropFirst())
+
+        // Global flags handled before subcommand dispatch.
+        if args.contains("--version") || args.contains("-V") {
+            print("macvision \(MACVISION_VERSION)")
+            return
+        }
+
         do {
             try await runCmd(MacvisionRoot.self, args)
         } catch {

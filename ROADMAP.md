@@ -19,6 +19,7 @@ Guiding principle: **macvision only does what is hard to do from shell or Python
 - [x] Environment and capability check (`macvision doctor`)
 - [x] `detect --ocr` — read the actual text inside `detect` (v0.1.1)
 - [x] Agent-friendly `--help`: SYNOPSIS / TIP / TLDR (v0.1.1)
+- [x] `--version` flag + automatic SLSA provenance on every release (v0.1.2)
 
 ---
 
