@@ -50,6 +50,7 @@ macvision ocr ./scan.png --level fast
 | `width`, `height` | int | Image dimensions |
 | `languages` | [string] | Languages used |
 | `count` | int | Number of text results |
+| `confidence` | float | Mean top-candidate confidence (0 if no text). With `count`, lets a caller judge whether to retry with a different `--lang` |
 | `texts` | [object] | One per recognized line/word |
 | `texts[].text` | string | Top candidate string |
 | `texts[].confidence` | float | Candidate confidence |

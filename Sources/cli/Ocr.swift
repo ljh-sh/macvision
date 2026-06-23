@@ -30,9 +30,17 @@ func runOCR(
     .sorted { $0.top.confidence > $1.top.confidence }
     let limited = top > 0 ? Array(obs.prefix(top)) : obs
 
+    // Aggregate confidence so a caller (e.g. an agent deciding whether to retry
+    // with a different language set) can judge without recomputing. count is the
+    // stronger signal for "wrong language" (0 texts), confidence gauges quality.
+    let avgConfidence: Double = limited.isEmpty
+        ? 0
+        : limited.map { Double($0.top.confidence) }.reduce(0, +) / Double(limited.count)
+
     var result = baseResult(engine, src)
     result["languages"] = langs
     result["count"] = limited.count
+    result["confidence"] = avgConfidence
     result["texts"] = limited.map { item -> [String: Any] in
         var t: [String: Any] = [
             "text": item.top.string,
