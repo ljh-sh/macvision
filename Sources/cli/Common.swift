@@ -46,7 +46,66 @@ func baseResult(_ engine: VisionEngine, _ src: ImageSource) -> [String: Any] {
     ["ok": true, "image": ImageLoader.label(src), "width": engine.width, "height": engine.height]
 }
 
-/// Optional value helper: read `key` from a daemon request dict as type T.
-func reqVal<T>(_ dict: [String: Any], _ key: String, _ fallback: T) -> T {
-    (dict[key] as? T) ?? fallback
+// MARK: - Language resolution (OCR)
+//
+// Vision's VNRecognizeTextRequest is natively multi-language: pass a list and
+// one request reads every script in it. So OCR does NOT need maclisten's
+// "run N locales, pick best" — instead we resolve a sensible language list
+// (broad default, or a named preset, or raw codes).
+
+/// Built-in named language presets for `--lang`.
+let builtinLangPresets: [String: [String]] = [
+    "all": ["zh-Hans", "zh-Hant", "en-US", "ja-JP", "ko-KR", "fr-FR", "de-DE", "es-ES", "pt-BR", "it-IT", "ru-RU"],
+    "cjk": ["zh-Hans", "zh-Hant", "ja-JP", "ko-KR"],
+    "cn": ["zh-Hans", "zh-Hant"],
+    "latin": ["en-US", "fr-FR", "de-DE", "es-ES", "pt-BR", "it-IT"],
+    "european": ["en-US", "fr-FR", "de-DE", "es-ES", "pt-BR", "it-IT"],
+    "en": ["en-US"],
+]
+
+/// Resolve a preset name to its language list. A user-defined preset via
+/// `$MACVISION_LANG_<NAME>` env overrides/extends the built-in one
+/// (e.g. `MACVISION_LANG_SEA=th-TH,vi-VN,id-ID` → `--lang sea`).
+func langPreset(_ name: String) -> [String]? {
+    let key = name.lowercased()
+    if let env = ProcessInfo.processInfo.environment["MACVISION_LANG_\(key.uppercased())"],
+       !env.isEmpty {
+        return env.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+    }
+    return builtinLangPresets[key]
+}
+
+/// Expand tokens (preset names or raw language codes) into a flat language list.
+func expandLangTokens(_ tokens: [String]) -> [String] {
+    tokens.flatMap { t -> [String] in
+        let trimmed = t.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { return [] }
+        if let preset = langPreset(trimmed) { return preset }
+        return [trimmed]
+    }
+}
+
+func dedupeStrings(_ xs: [String]) -> [String] {
+    var seen = Set<String>(); var out: [String] = []
+    for x in xs { if seen.insert(x).inserted { out.append(x) } }
+    return out
+}
+
+/// Resolve OCR languages: explicit `--lang` > `$MACVISION_LANG` > the `all` preset.
+func resolveLangs(_ p: ParsedCmd) -> [String] {
+    let raw: [String]? = p.opt("--lang")
+    let explicit = expandLangTokens((raw ?? []).flatMap { $0.split(separator: ",").map(String.init) })
+    if !explicit.isEmpty { return dedupeStrings(explicit) }
+    if let env = ProcessInfo.processInfo.environment["MACVISION_LANG"], !env.isEmpty {
+        let list = dedupeStrings(expandLangTokens(env.split(separator: ",").map(String.init)))
+        if !list.isEmpty { return list }
+    }
+    return builtinLangPresets["all"] ?? ["en-US"]
+}
+
+/// Resolve OCR languages from a raw token list (daemon requests). Presets expand;
+/// empty → the `all` preset.
+func resolveLangsList(_ raw: [String]) -> [String] {
+    let expanded = dedupeStrings(expandLangTokens(raw))
+    return expanded.isEmpty ? (builtinLangPresets["all"] ?? ["en-US"]) : expanded
 }

@@ -15,12 +15,13 @@ Every vision command takes the image as the first positional argument. It accept
 
 ## `macvision ocr <image>`
 
-Extract text with `VNRecognizeTextRequest`.
+Extract text with `VNRecognizeTextRequest`, which is natively multi-language — pass a list and one request reads every script.
 
 ```sh
-macvision ocr ./screenshot.png
+macvision ocr ./screenshot.png             # auto: broad default languages
+macvision ocr ./screenshot.png --lang cjk  # Chinese/Japanese/Korean preset
 macvision ocr ./screenshot.png --lang zh-Hans,en-US
-macvision ocr -                              # base64 image on stdin
+macvision ocr -                            # base64 image on stdin
 macvision ocr ./scan.png --level fast
 ```
 
@@ -28,13 +29,17 @@ macvision ocr ./scan.png --level fast
 
 | Option | Default | Description |
 |---|---|---|
-| `--lang` | `en-US` | Recognition languages, comma-separated. `zh-Hans` / `zh-Hant` for Chinese |
+| `--lang` | `all` preset | Languages/presets, repeatable or comma-separated. Presets: `all`(default),`cjk`,`cn`,`latin`,`en`. Custom set via `$MACVISION_LANG_<NAME>=a,b,c`. e.g. `--lang cjk,en-US` |
 | `--level` | `accurate` | `accurate` or `fast` |
 | `--min-confidence` | `0` | Drop results below this confidence |
 | `--top` | all | Keep at most N results |
 | `--no-language-correction` | off | Disable Vision language correction |
 | `--clipboard` | off | Read the image from the clipboard |
 | `--screen` | off | Take a fresh screenshot first |
+
+**Language presets** — `all` = zh-Hans,zh-Hant,en-US,ja-JP,ko-KR,fr,de,es,pt,it,ru (auto-detect, no `--lang` needed). `cjk` = zh+ja+ko. `cn` = zh-Hans,zh-Hant. `latin`/`european` = en+fr+de+es+pt+it. `en` = en-US only. Define your own: `export MACVISION_LANG_SEA=th-TH,vi-VN,id-ID` then `macvision ocr img.png --lang sea`.
+
+> **CJK ordering note:** Vision prioritizes the *first* CJK language in the list. The `all`/`cjk` presets are zh-first, so Chinese + Latin read reliably, but pure **Japanese/Korean** text can be starved — for those, lead with the language: `--lang ja-JP` / `--lang ko-KR`.
 
 **Output fields**
 
@@ -45,6 +50,7 @@ macvision ocr ./scan.png --level fast
 | `width`, `height` | int | Image dimensions |
 | `languages` | [string] | Languages used |
 | `count` | int | Number of text results |
+| `confidence` | float | Mean top-candidate confidence (0 if no text). With `count`, lets a caller judge whether to retry with a different `--lang` |
 | `texts` | [object] | One per recognized line/word |
 | `texts[].text` | string | Top candidate string |
 | `texts[].confidence` | float | Candidate confidence |

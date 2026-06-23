@@ -25,9 +25,9 @@ func daemonDispatch(action: String, request: [String: Any]) throws -> [String: A
 
     case "ocr":
         let (engine, src) = try loadEngine(arg: request["image"] as? String)
-        let langs = (request["lang"] as? [String])
-            ?? (request["languages"] as? [String])
-            ?? ["en-US"]
+        let langs = resolveLangsList(
+            (request["lang"] as? [String]) ?? (request["languages"] as? [String]) ?? []
+        )
         let level: VNRequestTextRecognitionLevel = (request["level"] as? String) == "fast" ? .fast : .accurate
         return try runOCR(
             engine: engine, src: src, langs: langs, level: level,
@@ -54,7 +54,7 @@ func daemonDispatch(action: String, request: [String: Any]) throws -> [String: A
         opts.textRegions = reqBool(request, "text_regions", false)
         opts.horizon = reqBool(request, "horizon", false)
         opts.ocr = reqBool(request, "ocr", false)
-        opts.ocrLang = (request["lang"] as? [String]) ?? ["en-US"]
+        opts.ocrLang = resolveLangsList((request["lang"] as? [String]) ?? [])
         opts.symbologies = parseSymbologies(request["symbologies"] as? [String])
         opts.minSize = reqDouble(request, "min_size", 0.2)
         opts.minConfidence = reqDouble(request, "min_confidence", 0.0)
