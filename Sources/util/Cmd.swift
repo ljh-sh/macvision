@@ -22,6 +22,8 @@ struct OptMeta {
     var desc: String = ""
     var required: Bool = false
     var `default`: Any?
+    /// When true, repeated occurrences accumulate into a `[String]` instead of overwriting.
+    var multiple: Bool = false
 }
 
 struct ArgMeta {
@@ -100,6 +102,10 @@ func runCmd(_ type: Cmd.Type, _ args: [String]) async throws {
                     } else if optMeta.type is Double.Type {
                         guard let v = Double(raw) else { cmdError("\(optName) requires a number") }
                         parsed.opts[optMeta.name] = v
+                    } else if optMeta.multiple {
+                        var list = parsed.opts[optMeta.name] as? [String] ?? []
+                        list.append(raw)
+                        parsed.opts[optMeta.name] = list
                     } else if optMeta.type is [String].Type {
                         parsed.opts[optMeta.name] = raw.split(separator: ",").map(String.init)
                     } else {

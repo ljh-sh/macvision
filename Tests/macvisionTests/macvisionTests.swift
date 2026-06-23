@@ -57,6 +57,73 @@ final class MacvisionTests: XCTestCase {
         XCTAssertNotNil(d["capabilities"])
     }
 
+    // MARK: - language resolution
+
+    func testBuiltinLangPresets() {
+        XCTAssertEqual(builtinLangPresets["all"]?.first, "zh-Hans")
+        XCTAssertTrue(builtinLangPresets["cjk"]?.contains("ja-JP") ?? false)
+    }
+
+    func testExpandLangTokensMixesPresetAndCode() {
+        // cjk preset + a raw code flatten in order.
+        let r = expandLangTokens(["cjk", "en-US"])
+        XCTAssertEqual(r, ["zh-Hans", "zh-Hant", "ja-JP", "ko-KR", "en-US"])
+    }
+
+    func testResolveLangsListDefaultsToAll() {
+        XCTAssertEqual(resolveLangsList([]), builtinLangPresets["all"])
+    }
+
+    func testResolveLangsListExplicit() {
+        XCTAssertEqual(resolveLangsList(["ja-JP"]), ["ja-JP"])
+    }
+
+    // MARK: - OCR integration (testdata/)
+
+    private func testDataURL(_ name: String) -> URL {
+        URL(fileURLWithPath: #file)
+            .deletingLastPathComponent()   // macvisionTests/
+            .deletingLastPathComponent()   // Tests/
+            .deletingLastPathComponent()   // macvision/ (repo root)
+            .appendingPathComponent("testdata/\(name).png")
+    }
+
+    /// OCR `testdata/<name>.png` with `langs` and return the joined recognized text.
+    private func ocrText(_ name: String, langs: [String]) throws -> String {
+        let url = testDataURL(name)
+        let img = try ImageLoader.load(.file(url))
+        let engine = VisionEngine(image: img, orientation: .up)
+        let r = try runOCR(engine: engine, src: .file(url), langs: langs,
+                           level: .accurate, minConfidence: 0, top: 0,
+                           usesLanguageCorrection: true)
+        return (r["texts"] as? [[String: Any]])?
+            .compactMap { $0["text"] as? String }
+            .joined(separator: " ") ?? ""
+    }
+
+    func testOcrReadsEnglish() throws {
+        let t = try ocrText("en", langs: ["en-US"])
+        XCTAssertTrue(t.contains("quick brown fox"), "en OCR: \(t)")
+    }
+
+    func testOcrReadsChinese() throws {
+        let t = try ocrText("cn", langs: ["zh-Hans", "en-US"])
+        XCTAssertTrue(t.contains("你好") || t.contains("视觉") || t.contains("中文"), "cn OCR: \(t)")
+    }
+
+    func testOcrReadsJapaneseExplicit() throws {
+        // Vision prioritizes the FIRST CJK language; ja-JP must lead (or be alone)
+        // or kana is starved by an earlier zh-Hans. See mneme auto-language doc.
+        let t = try ocrText("ja", langs: ["ja-JP"])
+        XCTAssertTrue(t.contains("テスト") || t.contains("こんにちは"), "ja OCR: \(t)")
+    }
+
+    func testOcrBroadDefaultReadsChinese() throws {
+        // The broad 'all' default is zh-first, so Chinese reads fine.
+        let t = try ocrText("cn", langs: builtinLangPresets["all"] ?? [])
+        XCTAssertTrue(t.contains("你好") || t.contains("视觉"), "cn broad OCR: \(t)")
+    }
+
     // MARK: - helpers
 
     private func makeImage(w: Int, h: Int) -> CGImage? {

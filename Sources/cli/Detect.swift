@@ -205,7 +205,7 @@ enum DetectCmd: Cmd {
             OptMeta(name: "--barcodes", type: Bool.self, desc: "Detect barcodes / QR codes"),
             OptMeta(name: "--text-regions", type: Bool.self, desc: "Detect text region bounding boxes (no content)"),
             OptMeta(name: "--ocr", type: Bool.self, desc: "Recognize the actual text (add to read words, not just boxes)"),
-            OptMeta(name: "--lang", type: [String].self, desc: "OCR recognition languages with --ocr (default: en-US). zh-Hans / zh-Hant for Chinese"),
+            OptMeta(name: "--lang", type: String.self, desc: "OCR languages/presets with --ocr (presets: all,cjk,cn,latin,en; default all). Repeatable or comma-separated", multiple: true),
             OptMeta(name: "--horizon", type: Bool.self, desc: "Detect horizon angle"),
             OptMeta(name: "--symbologies", type: [String].self, desc: "Barcode symbologies, comma-separated (e.g. qr,ean13). Default: Vision's built-in set"),
             OptMeta(name: "--min-size", type: Double.self, desc: "Minimum rectangle size for --rects (0-1, default: 0.2)"),
@@ -221,7 +221,7 @@ enum DetectCmd: Cmd {
             opts.textRegions = p.opt("--text-regions") as Bool? ?? false
             opts.horizon = p.opt("--horizon") as Bool? ?? false
             opts.ocr = p.opt("--ocr") as Bool? ?? false
-            opts.ocrLang = p.opt("--lang") as [String]? ?? ["en-US"]
+            opts.ocrLang = resolveLangs(p)
             opts.symbologies = parseSymbologies(p.opt("--symbologies") as [String]?)
             opts.minSize = p.opt("--min-size") as Double? ?? 0.2
             opts.minConfidence = p.opt("--min-confidence") as Double? ?? 0

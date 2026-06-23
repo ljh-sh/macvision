@@ -51,19 +51,29 @@ func runOCR(
 enum OcrCmd: Cmd {
     static let meta = CmdMeta(
         name: "ocr",
-        desc: "Extract text (OCR) from an image",
+        desc: "Read text out of an image (OCR)",
+        longDesc: "Uses VNRecognizeTextRequest, which is natively multi-language — pass a list and one request reads every script. With no --lang it auto-detects against a broad default set (all: zh / en / ja / ko / fr / de / es / pt / it / ru).",
+        tips: [
+            "Language presets: all (default), cjk, cn, latin, en. Mix freely: `--lang cjk,en-US`. Define your own set with $MACVISION_LANG_<NAME>=a,b,c then `--lang <name>`.",
+            "Output is JSON; text is in `.texts[].text`. Bounding boxes are pixel `[x,y,w,h]` top-left (+ normalized `norm`).",
+            "Narrow to a known script for speed/precision: `--lang en` (English only) is faster than the broad default.",
+            "Vision prioritizes the FIRST CJK language. For pure Japanese or Korean, lead with it (`--lang ja-JP` / `ko-KR`) so kana/Hangul isn't starved by an earlier Chinese entry.",
+        ],
         synopsis: [
-            "macvision ocr <image> [--lang zh-Hans,en-US] [--level accurate|fast]",
-            "macvision ocr -                         # base64 image on stdin",
-            "macvision ocr --clipboard [--lang ...]  # OCR the image on the clipboard",
+            "macvision ocr <image>                       # auto: broad default languages",
+            "macvision ocr <image> --lang cjk            # Chinese/Japanese/Korean preset",
+            "macvision ocr <image> --lang zh-Hans,en-US  # specific languages",
+            "macvision ocr -                             # base64 image on stdin",
+            "macvision ocr --clipboard                   # OCR the image on the clipboard",
         ],
         tldr: [
-            ("Chinese + English from a screenshot", "macvision ocr shot.png --lang zh-Hans,en-US"),
-            ("Fast pass over a large image", "macvision ocr big.png --level fast"),
-            ("Just the text, via jq", "macvision ocr shot.png | jq -r '.texts[].text'"),
+            ("Read all text in an image (language auto-detected)", "macvision ocr screenshot.png"),
+            ("Hand just the recognized text to another tool", "macvision ocr screenshot.png | jq -r '.texts[].text'"),
+            ("OCR a Chinese/Japanese/Korean scan", "macvision ocr scan.png --lang cjk"),
+            ("OCR the image currently on the clipboard", "macvision ocr --clipboard"),
         ],
         opts: imageInputOpts + [
-            OptMeta(name: "--lang", type: [String].self, desc: "Recognition languages, comma-separated (default: en-US). zh-Hans / zh-Hant for Chinese"),
+            OptMeta(name: "--lang", type: String.self, desc: "Recognition languages or presets, repeatable or comma-separated. Presets: all(default),cjk,cn,latin,en. Custom via $MACVISION_LANG_<NAME>", multiple: true),
             OptMeta(name: "--level", type: String.self, desc: "Recognition level: accurate|fast (default: accurate)"),
             OptMeta(name: "--min-confidence", type: Double.self, desc: "Drop results below this confidence (default: 0)"),
             OptMeta(name: "--top", type: Int.self, desc: "Keep at most N results (default: all)"),
@@ -72,7 +82,7 @@ enum OcrCmd: Cmd {
         args: [ArgMeta(name: "image", desc: "Image path, '-' for stdin base64, or use --clipboard/--screen")],
         run: { p in
             let (engine, src) = try loadEngine(p)
-            let langs = p.opt("--lang") as [String]? ?? ["en-US"]
+            let langs = resolveLangs(p)
             let level: VNRequestTextRecognitionLevel =
                 (p.opt("--level") as String? ?? "accurate") == "fast" ? .fast : .accurate
             let minConf = p.opt("--min-confidence") as Double? ?? 0.0
