@@ -62,6 +62,7 @@ enum OcrCmd: Cmd {
         desc: "Read text out of an image (OCR)",
         longDesc: "Uses VNRecognizeTextRequest, which is natively multi-language — pass a list and one request reads every script. With no --lang it auto-detects against a broad default set (all: zh / en / ja / ko / fr / de / es / pt / it / ru).",
         tips: [
+            "Language shortcuts: `--en`, `--zh`, `--ja`, `--ko` each add a script to --lang at the position they appear — `--ja --en` is the same as `--lang ja-JP,en-US`. Lead with the script you want recognized (ja/ko before zh, so kana/Hangul isn't starved).",
             "Language presets: all (default), cjk, cn, latin, en. Mix freely: `--lang cjk,en-US`. Define your own set with $MACVISION_LANG_<NAME>=a,b,c then `--lang <name>`.",
             "Output is JSON; text is in `.texts[].text`. Bounding boxes are pixel `[x,y,w,h]` top-left (+ normalized `norm`).",
             "Narrow to a known script for speed/precision: `--lang en` (English only) is faster than the broad default.",
@@ -71,6 +72,7 @@ enum OcrCmd: Cmd {
             "macvision ocr <image>                       # auto: broad default languages",
             "macvision ocr <image> --lang cjk            # Chinese/Japanese/Korean preset",
             "macvision ocr <image> --lang zh-Hans,en-US  # specific languages",
+            "macvision ocr <image> --ja --en             # shorthand: Japanese first, then English",
             "macvision ocr -                             # base64 image on stdin",
             "macvision ocr --clipboard                   # OCR the image on the clipboard",
         ],
@@ -78,10 +80,12 @@ enum OcrCmd: Cmd {
             ("Read all text in an image (language auto-detected)", "macvision ocr screenshot.png"),
             ("Hand just the recognized text to another tool", "macvision ocr screenshot.png | jq -r '.texts[].text'"),
             ("OCR a Chinese/Japanese/Korean scan", "macvision ocr scan.png --lang cjk"),
+            ("Japanese + English, shorthand", "macvision ocr scan.png --ja --en"),
             ("OCR the image currently on the clipboard", "macvision ocr --clipboard"),
         ],
         opts: imageInputOpts + [
             OptMeta(name: "--lang", type: String.self, desc: "Recognition languages or presets, repeatable or comma-separated. Presets: all(default),cjk,cn,latin,en. Custom via $MACVISION_LANG_<NAME>", multiple: true),
+        ] + langShortcutOpts + [
             OptMeta(name: "--level", type: String.self, desc: "Recognition level: accurate|fast (default: accurate)"),
             OptMeta(name: "--min-confidence", type: Double.self, desc: "Drop results below this confidence (default: 0)"),
             OptMeta(name: "--top", type: Int.self, desc: "Keep at most N results (default: all)"),

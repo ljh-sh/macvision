@@ -78,6 +78,40 @@ final class MacvisionTests: XCTestCase {
         XCTAssertEqual(resolveLangsList(["ja-JP"]), ["ja-JP"])
     }
 
+    // MARK: - language shortcuts (--ja / --en / --zh / --ko)
+
+    func testLangShortcutAppendsInCliOrder() async throws {
+        LangProbeCmd.captured = nil
+        try await runCmd(LangProbeCmd.self, ["--ja", "--en", "img"])
+        // `--ja --en` appends ja-JP then en-US to --lang, in command-line order.
+        let langs: [String]? = LangProbeCmd.captured?.opt("--lang")
+        XCTAssertEqual(langs, ["ja-JP", "en-US"])
+    }
+
+    func testLangShortcutInterleavesWithLangFlag() async throws {
+        LangProbeCmd.captured = nil
+        try await runCmd(LangProbeCmd.self, ["--lang", "en-US", "--ja", "img"])
+        // A shortcut lands at its CLI position relative to --lang tokens.
+        let langs: [String]? = LangProbeCmd.captured?.opt("--lang")
+        XCTAssertEqual(langs, ["en-US", "ja-JP"])
+    }
+
+    func testZhShortcutExpandsBothVariants() async throws {
+        LangProbeCmd.captured = nil
+        try await runCmd(LangProbeCmd.self, ["--zh", "img"])
+        let p = try XCTUnwrap(LangProbeCmd.captured)
+        // --zh contributes zh-Hans,zh-Hant; resolveLangs splits the comma.
+        XCTAssertEqual(resolveLangs(p), ["zh-Hans", "zh-Hant"])
+    }
+
+    func testShortcutAloneNarrowsToThatScript() async throws {
+        LangProbeCmd.captured = nil
+        try await runCmd(LangProbeCmd.self, ["--ja", "img"])
+        let p = try XCTUnwrap(LangProbeCmd.captured)
+        // A single shortcut narrows to that script, not the broad 'all' default.
+        XCTAssertEqual(resolveLangs(p), ["ja-JP"])
+    }
+
     // MARK: - OCR integration (testdata/)
 
     private func testDataURL(_ name: String) -> URL {
@@ -137,4 +171,17 @@ final class MacvisionTests: XCTestCase {
         ctx.fill(CGRect(x: 0, y: 0, width: w, height: h))
         return ctx.makeImage()
     }
+}
+
+/// Test-only command exposing just the language options, used to exercise the
+/// parser's `appendsTo` shortcut mechanism. The real `ocr`/`detect` commands load
+/// an image inside their run handler, which we don't want in a parser unit test.
+enum LangProbeCmd: Cmd {
+    static var captured: ParsedCmd?
+    static let meta = CmdMeta(
+        name: "probe",
+        opts: [OptMeta(name: "--lang", type: String.self, multiple: true)] + langShortcutOpts,
+        args: [ArgMeta(name: "image")],
+        run: { p in LangProbeCmd.captured = p }
+    )
 }
