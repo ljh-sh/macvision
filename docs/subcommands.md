@@ -21,6 +21,7 @@ Extract text with `VNRecognizeTextRequest`, which is natively multi-language —
 macvision ocr ./screenshot.png             # auto: broad default languages
 macvision ocr ./screenshot.png --lang cjk  # Chinese/Japanese/Korean preset
 macvision ocr ./screenshot.png --lang zh-Hans,en-US
+macvision ocr ./screenshot.png --ja --en   # shorthand: Japanese first, then English
 macvision ocr -                            # base64 image on stdin
 macvision ocr ./scan.png --level fast
 ```
@@ -30,12 +31,15 @@ macvision ocr ./scan.png --level fast
 | Option | Default | Description |
 |---|---|---|
 | `--lang` | `all` preset | Languages/presets, repeatable or comma-separated. Presets: `all`(default),`cjk`,`cn`,`latin`,`en`. Custom set via `$MACVISION_LANG_<NAME>=a,b,c`. e.g. `--lang cjk,en-US` |
+| `--en` `--zh` `--ja` `--ko` | off | Shorthand: add English / Chinese(zh-Hans,zh-Hant) / Japanese / Korean to `--lang` at the position they appear. `--ja --en` equals `--lang ja-JP,en-US` |
 | `--level` | `accurate` | `accurate` or `fast` |
 | `--min-confidence` | `0` | Drop results below this confidence |
 | `--top` | all | Keep at most N results |
 | `--no-language-correction` | off | Disable Vision language correction |
 | `--clipboard` | off | Read the image from the clipboard |
 | `--screen` | off | Take a fresh screenshot first |
+
+**Language shortcuts** — `--en`, `--zh`, `--ja`, `--ko` each append a script to `--lang` at their CLI position, so flag order is the language order: `--ja --en` → `ja-JP,en-US`. Combine freely with `--lang`, e.g. `--lang cjk --ja`.
 
 **Language presets** — `all` = zh-Hans,zh-Hant,en-US,ja-JP,ko-KR,fr,de,es,pt,it,ru (auto-detect, no `--lang` needed). `cjk` = zh+ja+ko. `cn` = zh-Hans,zh-Hant. `latin`/`european` = en+fr+de+es+pt+it. `en` = en-US only. Define your own: `export MACVISION_LANG_SEA=th-TH,vi-VN,id-ID` then `macvision ocr img.png --lang sea`.
 
@@ -94,6 +98,7 @@ Run one or more detectors in a single pass. With no detector flag it runs the br
 ```sh
 macvision detect ./photo.jpg                              # broad: faces, barcodes, text regions, horizon
 macvision detect ./shot.png --ocr --lang zh-Hans,en-US   # broad + read the text
+macvision detect ./shot.png --ocr --ja --en              # broad + read text (shorthand langs)
 macvision detect ./card.jpg --rects                       # document/card rectangles (opt-in)
 macvision detect ./qr.png --barcodes --symbologies qr,ean13
 macvision detect ./photo.jpg --faces --horizon            # only faces + horizon
@@ -108,7 +113,8 @@ macvision detect ./photo.jpg --faces --horizon            # only faces + horizon
 | `--barcodes` | off (on by default if none set) | Detect barcodes / QR |
 | `--text-regions` | off (on by default if none set) | Detect text region boxes (no content) |
 | `--ocr` | off | Recognize the actual text (additive) |
-| `--lang` | `en-US` | OCR languages with `--ocr` (`zh-Hans`/`zh-Hant` for Chinese) |
+| `--lang` | `all` preset | OCR languages/presets with `--ocr`. Presets: `all`(default),`cjk`,`cn`,`latin`,`en`. Repeatable or comma-separated |
+| `--en` `--zh` `--ja` `--ko` | off | Shorthand: add English / Chinese / Japanese / Korean to `--lang` at their CLI position |
 | `--horizon` | off (on by default if none set) | Detect horizon angle |
 | `--symbologies` | Vision default | `qr,ean13,ean8,upce,code128,code39,code93,datamatrix,pdf417,aztec,itf14` |
 | `--min-size` | `0.2` | Minimum rectangle size for `--rects` (0–1) |

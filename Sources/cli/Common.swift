@@ -9,6 +9,19 @@ let imageInputOpts: [OptMeta] = [
     OptMeta(name: "--orientation", type: String.self, desc: "EXIF orientation: up|down|left|right|... (default: up)"),
 ]
 
+/// Shorthand language flags shared by `ocr` and `detect --ocr`. Each appends its
+/// script(s) to `--lang` at the position it appears on the command line, so
+/// `macvision ocr img.png --ja --en` reads Japanese (kanji+kana) first, Latin
+/// second — identical to `--lang ja-JP,en-US`. Order matters for CJK: lead with
+/// the script you want recognized (Japanese before Chinese, since Vision commits
+/// to the first CJK recognizer and won't fall back to kana/Hangul).
+let langShortcutOpts: [OptMeta] = [
+    OptMeta(name: "--en", type: Bool.self, desc: "Add English (en-US) to --lang", appendsTo: "--lang", appendValue: "en-US"),
+    OptMeta(name: "--zh", type: Bool.self, desc: "Add Chinese (zh-Hans,zh-Hant) to --lang", appendsTo: "--lang", appendValue: "zh-Hans,zh-Hant"),
+    OptMeta(name: "--ja", type: Bool.self, desc: "Add Japanese (ja-JP) to --lang", appendsTo: "--lang", appendValue: "ja-JP"),
+    OptMeta(name: "--ko", type: Bool.self, desc: "Add Korean (ko-KR) to --lang", appendsTo: "--lang", appendValue: "ko-KR"),
+]
+
 func parseOrientation(_ s: String?) -> CGImagePropertyOrientation {
     guard let s else { return .up }
     switch s.lowercased() {

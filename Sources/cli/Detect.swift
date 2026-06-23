@@ -190,12 +190,14 @@ enum DetectCmd: Cmd {
         synopsis: [
             "macvision detect <image>                         # broad: faces, barcodes, text regions, horizon",
             "macvision detect <image> --ocr --lang zh-Hans,en-US   # broad + read the text",
+            "macvision detect <image> --ocr --ja --en             # broad + read text (shorthand langs)",
             "macvision detect <image> --faces                 # only faces",
             "macvision detect <image> --barcodes --symbologies qr   # only QR codes",
             "macvision detect <image> --rects                 # document/card rectangles (opt-in)",
         ],
         tldr: [
             ("Everything in a screenshot (including the text)", "macvision detect shot.png --ocr --lang zh-Hans,en-US"),
+            ("Broad + read text, Japanese first (shorthand)", "macvision detect shot.png --ocr --ja --en"),
             ("Only the QR/barcodes", "macvision detect qr.png --barcodes"),
             ("Only faces", "macvision detect group.jpg --faces"),
         ],
@@ -206,6 +208,7 @@ enum DetectCmd: Cmd {
             OptMeta(name: "--text-regions", type: Bool.self, desc: "Detect text region bounding boxes (no content)"),
             OptMeta(name: "--ocr", type: Bool.self, desc: "Recognize the actual text (add to read words, not just boxes)"),
             OptMeta(name: "--lang", type: String.self, desc: "OCR languages/presets with --ocr (presets: all,cjk,cn,latin,en; default all). Repeatable or comma-separated", multiple: true),
+        ] + langShortcutOpts + [
             OptMeta(name: "--horizon", type: Bool.self, desc: "Detect horizon angle"),
             OptMeta(name: "--symbologies", type: [String].self, desc: "Barcode symbologies, comma-separated (e.g. qr,ean13). Default: Vision's built-in set"),
             OptMeta(name: "--min-size", type: Double.self, desc: "Minimum rectangle size for --rects (0-1, default: 0.2)"),

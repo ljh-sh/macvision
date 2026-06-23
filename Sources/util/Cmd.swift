@@ -24,6 +24,12 @@ struct OptMeta {
     var `default`: Any?
     /// When true, repeated occurrences accumulate into a `[String]` instead of overwriting.
     var multiple: Bool = false
+    /// When set, this boolean flag also appends `appendValue` to the `[String]` at
+    /// `appendsTo`, in CLI order. Used for shorthand flags like `--ja` that add a
+    /// language to `--lang` at the exact position they appear — so
+    /// `--ja --lang en-US` and `--lang ja-JP --lang en-US` resolve identically.
+    var appendsTo: String? = nil
+    var appendValue: String? = nil
 }
 
 struct ArgMeta {
@@ -87,6 +93,11 @@ func runCmd(_ type: Cmd.Type, _ args: [String]) async throws {
             if let optMeta = meta.opts.first(where: { $0.name == optName || $0.alias == optName }) {
                 if optMeta.type is Bool.Type {
                     parsed.opts[optMeta.name] = true
+                    if let key = optMeta.appendsTo, let val = optMeta.appendValue {
+                        var list = parsed.opts[key] as? [String] ?? []
+                        list.append(val)
+                        parsed.opts[key] = list
+                    }
                 } else {
                     let raw: String
                     if let v = explicitValue {
