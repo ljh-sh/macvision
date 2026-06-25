@@ -11,7 +11,7 @@ Only the latest release receives security updates.
 
 ## Reporting a Vulnerability
 
-Please report security vulnerabilities privately by emailing [lijunhao@x-cmd.com](mailto:lijunhao@x-cmd.com).
+Please report security vulnerabilities privately by emailing [security@x-cmd.com](mailto:security@x-cmd.com).
 
 Do not open a public issue for security problems. We will respond as quickly as possible and coordinate a fix and disclosure.
 
