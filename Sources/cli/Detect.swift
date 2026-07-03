@@ -196,10 +196,12 @@ enum DetectCmd: Cmd {
             "macvision detect <image> --rects                 # document/card rectangles (opt-in)",
         ],
         tldr: [
-            ("Everything in a screenshot (including the text)", "macvision detect shot.png --ocr --lang zh-Hans,en-US"),
-            ("Broad + read text, Japanese first (shorthand)", "macvision detect shot.png --ocr --ja --en"),
-            ("Only the QR/barcodes", "macvision detect qr.png --barcodes"),
-            ("Only faces", "macvision detect group.jpg --faces"),
+            ("Agent: full screenshot dump (faces + barcodes + text + OCR in one call)", "macvision detect shot.png --ocr --lang zh-Hans,en-US"),
+            ("Agent: read a QR code from clipboard", "macvision detect --clipboard --barcodes"),
+            ("Agent: count people + read everything (no frames)", "macvision detect photo.jpg --faces --ocr | jq '.face_count,.texts[].text'"),
+            ("Agent: extract structured data from a card/document", "macvision detect card.jpg --rects"),
+            ("Agent: detect a QR code only (fast)", "macvision detect qr.png --barcodes"),
+            ("Agent: roll-angle / perspective correction", "macvision detect tilted.jpg --horizon"),
         ],
         opts: imageInputOpts + [
             OptMeta(name: "--faces", type: Bool.self, desc: "Detect faces"),

@@ -65,9 +65,10 @@ enum FeatureCmd: Cmd {
             "macvision feature <image> --level 2          # more precise (macOS 14+)",
         ],
         tldr: [
-            ("Get an image fingerprint", "macvision feature a.jpg"),
-            ("Are two images the same? (distance ~0)", "macvision feature a.jpg --compare b.jpg"),
-            ("Near-duplicate check (pick your own threshold)", "macvision feature a.jpg --compare b.jpg | jq .distance"),
+            ("Agent: get an image fingerprint vector (for similarity search)", "macvision feature a.jpg | jq -r '.data' | base64 -d > vec.bin"),
+            ("Agent: are these images the same / near-duplicates?", "macvision feature a.jpg --compare b.jpg | jq '.distance'"),
+            ("Agent: deduplicate a folder (loop compare)", "for f in *.jpg; do macvision feature thumb.jpg --compare $f | jq '.same'; done"),
+            ("Agent: high-precision fingerprint (macOS 14+)", "macvision feature a.jpg --level 2"),
         ],
         opts: imageInputOpts + [
             OptMeta(name: "--compare", type: String.self, desc: "Second image path; prints the distance between the two instead of a vector"),

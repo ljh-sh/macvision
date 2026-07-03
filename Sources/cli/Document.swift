@@ -35,7 +35,8 @@ enum DocumentCmd: Cmd {
             "macvision document <image>",
         ],
         tldr: [
-            ("Get the document quad to crop/deskew a scan", "macvision document scan.jpg"),
+            ("Agent: get the document outline (4 corners) to crop/deskew", "macvision document scan.jpg"),
+            ("Agent: snapshot a multi-page doc (combine with detect --rects)", "macvision document scan.jpg | jq '.documents[0].corners'"),
         ],
         opts: imageInputOpts,
         args: [ArgMeta(name: "image", desc: "Image path, '-' for stdin base64, or use --clipboard/--screen")],

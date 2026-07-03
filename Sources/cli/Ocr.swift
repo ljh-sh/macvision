@@ -77,11 +77,14 @@ enum OcrCmd: Cmd {
             "macvision ocr --clipboard                   # OCR the image on the clipboard",
         ],
         tldr: [
-            ("Read all text in an image (language auto-detected)", "macvision ocr screenshot.png"),
-            ("Hand just the recognized text to another tool", "macvision ocr screenshot.png | jq -r '.texts[].text'"),
-            ("OCR a Chinese/Japanese/Korean scan", "macvision ocr scan.png --lang cjk"),
-            ("Japanese + English, shorthand", "macvision ocr scan.png --ja --en"),
-            ("OCR the image currently on the clipboard", "macvision ocr --clipboard"),
+            ("Agent: read text from a screenshot directly to LLM (JSON positions)", "macvision ocr screenshot.png"),
+            ("Agent: read text from clipboard (paste a screenshot)", "macvision ocr --clipboard"),
+            ("Agent: read text as TSV (text, confidence, bbox, norm, center) for parsing", "macvision ocr screenshot.png"),
+            ("Agent: read a multi-language screenshot, JSON", "macvision ocr scan.png --lang cjk"),
+            ("Agent: just the words, one per line (--text)", "macvision ocr shot.png --text"),
+            ("Agent: text grouped by visual lines (--lines)", "macvision ocr shot.png --lines"),
+            ("Agent: choose the right script (Japanese first to avoid losing kana)", "macvision ocr shot.png --ja --en"),
+            ("Agent: filter out OCR guesses below 0.5 confidence", "macvision ocr noisy.png --min-confidence 0.5 | jq '.texts'"),
         ],
         opts: imageInputOpts + [
             OptMeta(name: "--lang", type: String.self, desc: "Recognition languages or presets, repeatable or comma-separated. Presets: all(default),cjk,cn,latin,en. Custom via $MACVISION_LANG_<NAME>", multiple: true),
@@ -90,6 +93,11 @@ enum OcrCmd: Cmd {
             OptMeta(name: "--min-confidence", type: Double.self, desc: "Drop results below this confidence (default: 0)"),
             OptMeta(name: "--top", type: Int.self, desc: "Keep at most N results (default: all)"),
             OptMeta(name: "--no-language-correction", type: Bool.self, desc: "Disable Vision language correction"),
+            OptMeta(name: "--text", type: Bool.self, desc: "Output plain text (one per line)"),
+            OptMeta(name: "--lines", type: Bool.self, desc: "Output text grouped by lines"),
+            OptMeta(name: "--tsv", type: Bool.self, desc: "Output TSV format (x\\ty\\ttext)"),
+            OptMeta(name: "--json", type: Bool.self, desc: "Output JSON format (default)"),
+            OptMeta(name: "--tolerance", type: Int.self, desc: "Y-axis tolerance for line grouping (default: 10)"),
         ],
         args: [ArgMeta(name: "image", desc: "Image path, '-' for stdin base64, or use --clipboard/--screen")],
         run: { p in
@@ -100,10 +108,82 @@ enum OcrCmd: Cmd {
             let minConf = p.opt("--min-confidence") as Double? ?? 0.0
             let top = p.opt("--top") as Int? ?? 0
             let correction = !(p.opt("--no-language-correction") as Bool? ?? false)
-            printJson(try runOCR(
+            let useText = p.opt("--text") as Bool? ?? false
+            let useLines = p.opt("--lines") as Bool? ?? false
+            let useJson = p.opt("--json") as Bool? ?? false
+            // 默认 TSV，没有指定任何模式时用 TSV
+            let useTsv = p.opt("--tsv") as Bool? ?? !(useText || useLines || useJson)
+            let tolerance = p.opt("--tolerance") as Int? ?? 10
+            let result = try runOCR(
                 engine: engine, src: src, langs: langs, level: level,
                 minConfidence: minConf, top: top, usesLanguageCorrection: correction
-            ))
+            )
+
+            if useText || useLines || useTsv {
+                // 按位置排序文本：先按 y 排序，再按 x 排序（左到右，上到下）
+                let texts = result["texts"] as? [[String: Any]] ?? []
+                let sorted = texts.sorted { a, b in
+                    let aBox = a["bbox"] as? [Int] ?? [0,0,0,0]
+                    let bBox = b["bbox"] as? [Int] ?? [0,0,0,0]
+                    // 先按 y 排序（从上到下），再按 x 排序（从左到右）
+                    if aBox[1] != bBox[1] { return aBox[1] < bBox[1] }
+                    return aBox[0] < bBox[0]
+                }
+
+                if useTsv {
+                    // TSV 格式：text\tconfidence\tbox\tnorm\tcenter\tcenter_norm（默认）
+                    print("text\tconfidence\tbox\tnorm\tcenter\tcenter_norm")
+                    for t in sorted {
+                        let box = t["bbox"] as? [Int] ?? [0,0,0,0]
+                        let boxStr = box.map { String($0) }.joined(separator: ",")
+                        // 中心点坐标 (像素)
+                        let cx = box.count >= 4 ? box[0] + box[2] / 2 : 0
+                        let cy = box.count >= 4 ? box[1] + box[3] / 2 : 0
+                        let centerStr = "\(cx),\(cy)"
+
+                        // norm + 归一化中心点
+                        let norm = t["norm"] as? [Double] ?? []
+                        let normStr = norm.map { String(format: "%.4f", $0) }.joined(separator: ",")
+                        let ncx: Double = norm.count >= 4 ? norm[0] + norm[2] / 2 : 0
+                        let ncy: Double = norm.count >= 4 ? norm[1] + norm[3] / 2 : 0
+                        let centerNormStr = String(format: "%.4f,%.4f", ncx, ncy)
+
+                        let conf = t["confidence"] as? Double ?? (t["confidence"] as? Float).map { Double($0) } ?? 0.0
+                        let text = t["text"] as? String ?? ""
+                        print("\(text)\t\(conf)\t\(boxStr)\t\(normStr)\t\(centerStr)\t\(centerNormStr)")
+                    }
+                } else if useText {
+                    // 纯文本模式：每行一个文本
+                    for t in sorted {
+                        print(t["text"] as? String ?? "")
+                    }
+                } else if useLines {
+                    // lines 模式：按精确的 y 坐标分组（更严格）
+                    var lines: [[String]] = []
+                    var lastY: Int? = nil
+
+                    for t in sorted {
+                        guard let box = t["bbox"] as? [Int], box.count >= 2 else { continue }
+                        let y = box[1]
+                        if let prevY = lastY, y == prevY {
+                            // 同一行（精确匹配 y）
+                            lines[lines.count - 1].append(t["text"] as? String ?? "")
+                        } else {
+                            // 新行
+                            lines.append([t["text"] as? String ?? ""])
+                            lastY = y
+                        }
+                    }
+
+                    // 输出每行
+                    for line in lines {
+                        print(line.joined(separator: " "))
+                    }
+                }
+            } else {
+                // JSON 模式
+                printJson(result)
+            }
         }
     )
 }

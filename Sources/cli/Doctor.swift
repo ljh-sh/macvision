@@ -22,6 +22,9 @@ func runDoctor() -> [String: Any] {
         ("detect_rects",   true,  "VNDetectRectanglesRequest"),
         ("detect_text_regions", true, "VNDetectTextRectanglesRequest"),
         ("detect_horizon", true,  "VNDetectHorizonRequest"),
+        ("face_landmarks", true,  "VNDetectFaceLandmarksRequest"),
+        ("pose",           true,  "VNDetectHumanBodyPoseRequest"),
+        ("humans",         true,  "VNDetectHumanRectanglesRequest"),
         ("salient",        true,  "VNGenerateAttentionBasedSaliencyImageRequest"),
         ("document",       true,  "VNDetectDocumentSegmentationRequest"),
         ("feature",        true,  "VNGenerateImageFeaturePrintRequest"),
@@ -70,7 +73,8 @@ enum DoctorCmd: Cmd {
             "macvision doctor",
         ],
         tldr: [
-            ("Check macOS version, arch, and supported Vision requests", "macvision doctor"),
+            ("Agent: verify Vision capabilities before chaining subcommands", "macvision doctor"),
+            ("Agent: check macOS / arch (some Vision needs Apple Silicon)", "macvision doctor | jq '.macos_version, .apple_silicon'"),
         ],
         run: { _ in
             printJson(runDoctor())
