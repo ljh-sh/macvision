@@ -50,8 +50,10 @@ enum ClassifyCmd: Cmd {
             "macvision classify <image> --animals   # recognize animal species",
         ],
         tldr: [
-            ("Top 5 scene/object labels", "macvision classify photo.jpg --top 5"),
-            ("What animal is in this photo", "macvision classify pet.jpg --animals"),
+            ("Agent: 'what's in this photo?' — top 5 scene labels", "macvision classify photo.jpg --top 5"),
+            ("Agent: identify animal species (replaces a pet app)", "macvision classify pet.jpg --animals"),
+            ("Agent: filter predictions by confidence, pass to LLM", "macvision classify shot.jpg --min-confidence 0.3 | jq -r '.labels[].name'"),
+            ("Agent: classify a screenshot from clipboard", "macvision classify --clipboard"),
         ],
         opts: imageInputOpts + [
             OptMeta(name: "--top", type: Int.self, desc: "Keep top N labels (default: 10)"),

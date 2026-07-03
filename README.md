@@ -17,7 +17,7 @@
 - **Cuts your LLM vision bill** — OCR and detection run free, on-device; send the text to your model instead of paying per image.
 - **Protects your privacy — nothing is uploaded** — every image is processed locally on your Mac.
 - **Agent-friendly JSON** — compact single-line output and a FIFO daemon, so it drops straight into `jq` pipelines and agent loops.
-- **Full Vision surface** — OCR, classification, face/barcode/document detection, document segmentation, saliency heatmaps, and image feature-prints.
+- **Full Vision surface** — OCR, classification, face/barcode/document detection, **face landmarks, body pose, human rectangles**, document segmentation, saliency heatmaps, and image feature-prints.
 
 Docs: [ljh-sh.github.io/macvision](https://ljh-sh.github.io/macvision)
 
@@ -73,23 +73,86 @@ swift build -c release
 ## Usage
 
 ```sh
-macvision ocr ./screenshot.png                       # extract text
+# === OCR / Reading ===
+macvision ocr ./screenshot.png                       # extract text (TSV: text, confidence, bbox, norm, center)
+macvision ocr ./screenshot.png --json                 # JSON with full positions
+macvision ocr ./screenshot.png --text                 # one text per line
+macvision ocr ./screenshot.png --lines                # grouped by visual lines
 macvision ocr ./screenshot.png --lang zh-Hans,en-US   # Chinese + English
 macvision ocr -                                       # read base64 image from stdin
+macvision ocr --clipboard                             # OCR the clipboard
+macvision ocr --tolerance 30                          # fuzzy line grouping
 
+# === Classification (the "what is in this photo" call) ===
 macvision classify ./photo.jpg --top 5                # scene/object labels
 macvision classify ./photo.jpg --animals              # animal species
+macvision classify ./photo.jpg --min-confidence 0.3   # filter weak predictions
 
-macvision detect ./photo.jpg                          # faces, barcodes, text regions, horizon
+# === Detection: faces, barcodes, rects, text regions, horizon ===
+macvision detect ./photo.jpg                          # broad: faces, barcodes, text regions, horizon
 macvision detect ./shot.png --ocr --lang zh-Hans,en-US  # broad + read the text
 macvision detect ./card.jpg --rects                   # document/card rectangles
 macvision detect ./qr.png --barcodes --symbologies qr # barcodes / QR only
+macvision detect ./tilted.jpg --horizon               # roll-angle correction
 
+# === Faces & people (Apple Vision built-ins, no model to download) ===
+macvision face-landmarks ./group.jpg                  # faces + 13 landmark regions (eyes, nose, mouth, ...)
+macvision face-landmarks ./self.jpg --min-confidence 0.5
+macvision pose ./runner.jpg                           # 18 joint keypoints per body
+macvision pose ./workout.jpg --min-confidence 0.3     # filter noisy joints
+macvision humans ./meeting.jpg                        # count people + bboxes
+
+# === Document & saliency ===
 macvision document ./scan.jpg                         # document outline (for crop/deskew)
-macvision salient ./photo.jpg                         # saliency heatmap PNG
+macvision salient ./photo.jpg --output heat.png       # where the eye goes
+macvision salient ./photo.jpg --mode objectness       # where whole objects likely are
+
+# === Image similarity / search ===
 macvision feature ./a.jpg                             # image fingerprint vector
-macvision feature ./a.jpg --compare ./b.jpg           # distance between two images
-macvision doctor                                      # environment + capability check
+macvision feature ./a.jpg --compare ./b.jpg           # distance (0 = identical)
+macvision feature ./a.jpg --level 2                    # higher-precision vector (macOS 14+)
+
+# === Misc ===
+macvision doctor                                      # list supported Vision requests
+macvision infer squeezenet1-1 ./photo.jpg              # experimental CoreML model run (downloaded on demand)
+```
+
+Image input accepts a file path, `-` for base64 on stdin, or `--clipboard` / `--screen` to read the clipboard or take a fresh screenshot.
+
+Output is JSON by default; OCR defaults to TSV (text + confidence + box + norm + center) for easy piping:
+
+```json
+{"ok":true,"image":"./screenshot.png","width":1920,"height":1080,"languages":["zh-Hans","en-US"],"count":3,"texts":[{"text":"你好世界","confidence":0.97,"bbox":[60,495,515,30],"norm":[0.05,0.77,0.43,0.05]}]}
+```
+
+Bounding boxes are pixel coordinates `[x, y, w, h]` with the origin at the **top-left** of the image (the convention agents need for screen coordinates). `norm` is the same box normalized to `[0,1]`.
+
+## Quick examples for AI agents
+
+```sh
+# "What does this screenshot say?"
+macvision ocr shot.png --tsv
+
+# "What's in this photo?"
+macvision classify photo.jpg --top 5 | jq -r '.labels[].name'
+
+# "Read the QR code from clipboard"
+macvision detect --clipboard --barcodes
+
+# "Find faces in a group shot"
+macvision detect group.jpg --faces
+
+# "Count people in a meeting room"
+macvision humans meeting.jpg | jq '.count'
+
+# "Are these two images the same?"
+macvision feature a.jpg --compare b.jpg | jq '.distance'
+
+# "Where should I look?"
+macvision salient photo.jpg --output heat.png
+
+# "Get coordinates of every word"
+macvision ocr shot.png | jq '.texts[] | {text,bbox}'
 ```
 
 Image input accepts a file path, `-` for base64 on stdin, or `--clipboard` / `--screen` to read the clipboard or take a fresh screenshot.
@@ -120,7 +183,7 @@ See [docs/faq.md](docs/faq.md) or the [published FAQ](https://ljh-sh.github.io/m
 
 ## Design
 
-- **Small surface**: `ocr`, `classify`, `detect`, `salient`, `document`, `feature`, `daemon`, `doctor`.
+- **Small surface**: `ocr`, `classify`, `detect`, `face-landmarks`, `pose`, `humans`, `salient`, `document`, `feature`, `daemon`, `doctor`, `infer`.
 - **JSON output**: compact single-line JSON, easy to pipe to `jq`.
 - **No run loop**: `Vision`'s `perform(_:)` is synchronous, so — unlike audio tools — macvision never spins up an `NSApplication` for image work.
 - **FIFO IPC**: the daemon speaks NDJSON over named pipes, matching the shell-native style of the surrounding toolchain.

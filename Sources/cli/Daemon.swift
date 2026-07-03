@@ -74,7 +74,14 @@ func daemonDispatch(action: String, request: [String: Any]) throws -> [String: A
         let (engine, src) = try loadEngine(arg: request["image"] as? String)
         let mode = reqString(request, "mode", "attention")
         let out = (request["output"] as? String).map { URL(fileURLWithPath: $0) }
-        return try runSalient(engine: engine, src: src, mode: mode, output: out)
+        let overlay = reqBool(request, "overlay", false)
+        let style = reqString(request, "overlay_style", "contour")
+        let crop = reqBool(request, "crop", false)
+        let padding = (request["padding"] as? Double) ?? 0.05
+        let cropSize: (width: Int, height: Int)? = (request["size"] as? String).flatMap { parseSocialSize($0) }
+        let ocr = reqBool(request, "ocr", false)
+
+        return try runSalient(engine: engine, src: src, mode: mode, output: out, overlay: overlay, overlayStyle: style, crop: crop, cropPadding: padding, cropSize: cropSize, ocr: ocr)
 
     case "document":
         let (engine, src) = try loadEngine(arg: request["image"] as? String)

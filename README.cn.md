@@ -73,23 +73,45 @@ swift build -c release
 ## 用法
 
 ```sh
-macvision ocr ./screenshot.png                       # 提取文字
+# === OCR / 读图 ===
+macvision ocr ./screenshot.png                       # 提取文字（默认 TSV：text, confidence, bbox, norm, center）
+macvision ocr ./screenshot.png --json                 # JSON 含完整位置
+macvision ocr ./screenshot.png --text                 # 一行一个文本
+macvision ocr ./screenshot.png --lines                # 按行分组
 macvision ocr ./screenshot.png --lang zh-Hans,en-US   # 中英文
-macvision ocr -                                       # 从 stdin 读 base64 图像
+macvision ocr -                                       # 从 stdin 读 base64
+macvision ocr --clipboard                             # OCR 剪贴板
 
+# === 分类（"这是啥？"）===
 macvision classify ./photo.jpg --top 5                # 场景 / 物体标签
 macvision classify ./photo.jpg --animals              # 动物物种
+macvision classify ./photo.jpg --min-confidence 0.3   # 过滤低置信度
 
+# === 检测：人脸 / 条码 / 矩形 / 文字区域 / 地平线 ===
 macvision detect ./photo.jpg                          # 人脸 / 条码 / 文字区域 / 地平线
-macvision detect ./shot.png --ocr --lang zh-Hans,en-US  # 上面全部 + 读出文字
+macvision detect ./shot.png --ocr --lang zh-Hans,en-US  # 全部 + 读出文字
 macvision detect ./card.jpg --rects                   # 文档 / 卡片矩形
 macvision detect ./qr.png --barcodes --symbologies qr # 仅条码 / QR
+macvision detect ./tilted.jpg --horizon               # 倾角检测 / 校正
 
-macvision document ./scan.jpg                         # 文档边框（用于裁剪 / 纠偏）
-macvision salient ./photo.jpg                         # 显著性热力图 PNG
+# === 人脸 / 人体（Apple Vision 内置，无需模型下载）===
+macvision face-landmarks ./group.jpg                  # 人脸 + 13 个五官区域（眼 / 鼻 / 嘴 等）
+macvision pose ./runner.jpg                           # 每个人体 18 个关节关键点
+macvision humans ./meeting.jpg                        # 数人数 / 取人体框
+
+# === 文档 / 显著性 ===
+macvision document ./scan.jpg                         # 文档轮廓（用于裁剪 / 纠偏）
+macvision salient ./photo.jpg --output heat.png       # 视觉显著性热力图
+macvision salient ./photo.jpg --mode objectness       # 物体显著区域
+
+# === 图像相似度 / 检索 ===
 macvision feature ./a.jpg                             # 图像指纹向量
-macvision feature ./a.jpg --compare ./b.jpg           # 两张图的距离
-macvision doctor                                      # 环境与能力检查
+macvision feature ./a.jpg --compare ./b.jpg           # 距离（0 = 相同）
+macvision feature ./a.jpg --level 2                    # 更精细（macOS 14+）
+
+# === 其他 ===
+macvision doctor                                      # 列出支持的 Vision 请求
+macvision infer squeezenet1-1 ./photo.jpg              # 试验 CoreML 模型（首次使用时下载）
 ```
 
 图像输入支持：文件路径、`-`（从 stdin 读 base64）、或 `--clipboard` / `--screen`（读剪贴板 / 现截一张屏）。
@@ -101,6 +123,34 @@ macvision doctor                                      # 环境与能力检查
 ```
 
 边界框是像素坐标 `[x, y, w, h]`，原点在图像**左上角**（智能体映射屏幕坐标所需的约定）。`norm` 是同样的框归一化到 `[0,1]`。
+
+## 给 AI 智能体的速用例子
+
+```sh
+# "这张截图写了啥？"
+macvision ocr shot.png --tsv
+
+# "这张图是啥？"
+macvision classify photo.jpg --top 5 | jq -r '.labels[].name'
+
+# "读一下剪贴板里的 QR 码"
+macvision detect --clipboard --barcodes
+
+# "找合影里所有脸"
+macvision detect group.jpg --faces
+
+# "会议室里有几个人？"
+macvision humans meeting.jpg | jq '.count'
+
+# "这两张图是不是同一张？"
+macvision feature a.jpg --compare b.jpg | jq '.distance'
+
+# "画面里最该看哪里？"
+macvision salient photo.jpg --output heat.png
+
+# "把所有文字连坐标给我"
+macvision ocr shot.png | jq '.texts[] | {text,bbox}'
+```
 
 ## FIFO 守护进程
 
