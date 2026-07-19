@@ -1,7 +1,7 @@
 title: macvision
 description: Turn any image into agent-friendly JSON — local macOS OCR and image understanding via Apple's Vision framework. No model download, no uploads, no per-call cost.
-baseurl: "/macvision"
-url: "https://ljh-sh.github.io"
+baseurl: ""
+url: "https://macvision.ljh.sh"
 
 permalink: pretty
 
