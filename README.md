@@ -2,7 +2,7 @@
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ljh-sh/macvision/badge)](https://scorecard.dev/)
 [![CI](https://github.com/ljh-sh/macvision/actions/workflows/ci.yml/badge.svg)](https://github.com/ljh-sh/macvision/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/Docs-website-blue.svg)](https://ljh-sh.github.io/macvision)
+[![Docs](https://img.shields.io/badge/Docs-website-blue.svg)](https://macvision.ljh.sh)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.txt)
 
 > Turn any image into agent-friendly JSON — local OCR and image understanding on macOS.
@@ -19,7 +19,7 @@
 - **Agent-friendly JSON** — compact single-line output and a FIFO daemon, so it drops straight into `jq` pipelines and agent loops.
 - **Full Vision surface** — OCR, classification, face/barcode/document detection, **face landmarks, body pose, human rectangles**, document segmentation, saliency heatmaps, and image feature-prints.
 
-Docs: [ljh-sh.github.io/macvision](https://ljh-sh.github.io/macvision)
+Docs: [macvision.ljh.sh](https://macvision.ljh.sh)
 
 ## For AI agents
 
@@ -179,7 +179,7 @@ See [docs/subcommands.md](docs/subcommands.md) for the request schema.
 
 ## FAQ
 
-See [docs/faq.md](docs/faq.md) or the [published FAQ](https://ljh-sh.github.io/macvision/faq) for permissions, screencapture, coordinate conventions, and how macvision compares to Tesseract and cloud OCR.
+See [docs/faq.md](docs/faq.md) or the [published FAQ](https://macvision.ljh.sh/faq) for permissions, screencapture, coordinate conventions, and how macvision compares to Tesseract and cloud OCR.
 
 ## Design
 

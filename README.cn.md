@@ -2,7 +2,7 @@
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ljh-sh/macvision/badge)](https://scorecard.dev/)
 [![CI](https://github.com/ljh-sh/macvision/actions/workflows/ci.yml/badge.svg)](https://github.com/ljh-sh/macvision/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/Docs-website-blue.svg)](https://ljh-sh.github.io/macvision)
+[![Docs](https://img.shields.io/badge/Docs-website-blue.svg)](https://macvision.ljh.sh)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.txt)
 
 > 把任意图像变成 agent 友好的 JSON —— macOS 本地 OCR 与图像理解。
@@ -19,7 +19,7 @@ English: [README.md](README.md)。
 - **agent 友好的 JSON** —— 紧凑单行输出 + FIFO 守护进程，直接嵌入 `jq` 管道和 agent 循环。
 - **完整覆盖 Vision 能力** —— OCR、分类、人脸 / 条码 / 文档检测、文档版面、显著性热力图、图像指纹。
 
-文档：[ljh-sh.github.io/macvision](https://ljh-sh.github.io/macvision)
+文档：[macvision.ljh.sh](https://macvision.ljh.sh)
 
 ## 给 AI 智能体
 
@@ -166,7 +166,7 @@ cat /tmp/macvision.res   # 每个请求一行 NDJSON 响应
 
 ## FAQ
 
-详见 [docs/faq.md](docs/faq.md) 或 [在线 FAQ](https://ljh-sh.github.io/macvision/faq)，涵盖权限、截屏、坐标约定，以及 macvision 与 Tesseract / 云端 OCR 的对比。
+详见 [docs/faq.md](docs/faq.md) 或 [在线 FAQ](https://macvision.ljh.sh/faq)，涵盖权限、截屏、坐标约定，以及 macvision 与 Tesseract / 云端 OCR 的对比。
 
 ## 设计
 
